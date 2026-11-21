@@ -1,0 +1,47 @@
+# Sadan Real Estate — clean web addresses on Hostinger (Apache / LiteSpeed)
+Options -Indexes
+DirectoryIndex index.php
+ErrorDocument 404 /404.php
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Keep internal folders private
+  RewriteRule ^(inc|lang|data|partials)/ - [F,L]
+  RewriteRule ^router\.php$ - [F,L]
+  # Uploaded photos are only ever images: never run anything from that folder
+  RewriteRule ^uploads/.*\.(php\d?|phtml|phar|pht|shtml|cgi|pl|py|sh)$ - [F,L,NC]
+  RewriteRule (^|/)\.git - [F,L]
+  RewriteRule (^|/)\.user\.ini$ - [F,L]
+
+  # Real files (images, CSS, JS, send.php) are served as they are
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ - [L]
+
+  # English at /..., Arabic at /ar/...
+  RewriteRule ^(?:ar/?)?$ index.php [QSA,L]
+  RewriteRule ^(?:ar/)?(buy|sell|rent|manage)/?$ service.php?s=$1 [QSA,L]
+  RewriteRule ^(?:ar/)?areas/?$ areas.php [QSA,L]
+  RewriteRule ^(?:ar/)?areas/([a-z-]+)/?$ area.php?a=$1 [QSA,L]
+  RewriteRule ^(?:ar/)?(about|contact)/?$ $1.php [QSA,L]
+  RewriteRule ^(?:ar/)?properties/?$ properties.php [QSA,L]
+  RewriteRule ^(?:ar/)?properties/([0-9]+)(?:-[a-z0-9-]*)?/?$ property.php?id=$1 [QSA,L]
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
+  # Anything else
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ 404.php [L]
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp "access plus 7 days"
+  ExpiresByType image/png "access plus 7 days"
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
